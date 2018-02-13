@@ -57,4 +57,23 @@ public class MainActivity extends AppCompatActivity implements Listener {
                 break;
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // make the device update its location
+        easyWayLocation.beginUpdates();
+
+
+    }
+
+    @Override
+    protected void onPause() {
+        // stop location updates (saves battery)
+        easyWayLocation.endUpdates();
+
+
+        super.onPause();
+    }
 }
