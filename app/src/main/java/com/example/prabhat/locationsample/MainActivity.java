@@ -31,15 +31,15 @@ public class MainActivity extends AppCompatActivity implements Listener {
     public void locationOn() {
         Toast.makeText(this, "Location ON", Toast.LENGTH_SHORT).show();
         easyWayLocation.beginUpdates();
-        lati = easyWayLocation.getLatitude();
-        longi = easyWayLocation.getLongitude();
-        location.setText(EasyWayLocation.getAddress(this, lati, longi, false, true));
-        latLong.setText(String.valueOf(lati) + "  " + String.valueOf(longi));
         diff.setText(String.valueOf(EasyWayLocation.calculateDistance(28.626686, 77.026409, 28.626799, 77.033619)));
     }
 
     @Override
     public void onPositionChanged() {
+        lati = easyWayLocation.getLatitude();
+        longi = easyWayLocation.getLongitude();
+        location.setText(EasyWayLocation.getAddress(this, lati, longi, false, true));
+        latLong.setText(String.valueOf(lati) + "  " + String.valueOf(longi));
         Toast.makeText(this, String.valueOf(easyWayLocation.getLongitude()) + "," + String.valueOf(easyWayLocation.getLatitude()), Toast.LENGTH_SHORT).show();
     }
 
