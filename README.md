@@ -189,6 +189,10 @@ Point endPoint = new EasyWayLocation.Point(44.84, -0.58);
 location.calculateDistance(startPoint, endPoint);
 
 ````
+#### Bugs, Feature requests
+
+Found a bug? Something that's missing? Feedback is an important part of improving the project, so please
+<a href="https://github.com/prabhat1707/EasyWayLocation/issues">open an issue</a>
 
 # License
 
