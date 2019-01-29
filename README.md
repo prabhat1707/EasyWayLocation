@@ -24,7 +24,7 @@ allprojects {
 ````
 
 		dependencies {
-	        compile 'com.github.prabhat1707:EasyWayLocation:1.0'
+	        implementation 'com.github.prabhat1707:EasyWayLocation:1.0'
 	}
 	
   
