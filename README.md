@@ -24,15 +24,15 @@ allprojects {
 ````
 
 		dependencies {
-	        implementation 'com.github.prabhat1707:EasyWayLocation:1.0'
-	}
+	        implementation 'com.github.prabhat1707:EasyWayLocation:1.2'
+		}
 	
   
 ````
 
 # Usage
 
-###### If the device is running Android 6.0 or higher, and your app's target SDK is 23 or highe then first check permission of location then call it.
+###### If the device is running Android 6.0 or higher, and your app's target SDK is 29 or highe then first check permission of location then call it.
 
 ## Add the required permissions
 For fine location (GPS location), add the following permission in your AndroidManifest.xml:
@@ -59,28 +59,27 @@ public class MainActivity extends AppCompatActivity implements Listener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //--
-        easyWayLocation = new EasyWayLocation(this);
-        easyWayLocation.setListener(this);
+        easyWayLocation = new EasyWayLocation(this, false,this);
     }
 
     @Override
     public void locationOn() {
-        Toast.makeText(this, "Location ON", Toast.LENGTH_SHORT).show();
-        easyWayLocation.beginUpdates();
-        lati = easyWayLocation.getLatitude();
-        longi = easyWayLocation.getLongitude();
-       
-       //--
+        Toast.makeText(this, "Location ON", Toast.LENGTH_SHORT).show();    
     }
 
-    @Override
-    public void onPositionChanged() {
-        Toast.makeText(this, String.valueOf(easyWayLocation.getLongitude()) + "," + String.valueOf(easyWayLocation.getLatitude()), Toast.LENGTH_SHORT).show();
+   @Override
+    public void currentLocation(Location location) {
+        StringBuilder data = new StringBuilder();
+        data.append(location.getLatitude());
+        data.append(" , ");
+        data.append(location.getLongitude());
+        latLong.setText(data);
+        getLocationDetail.getAddress(location.getLatitude(), location.getLongitude(), "xyz");
     }
-
+    
     @Override
     public void locationCancelled() {
-        easyWayLocation.showAlertDialog(getString(R.string.loc_title), getString(R.string.loc_mess), null);
+         Toast.makeText(this, "Location Cancelled", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -96,20 +95,14 @@ public class MainActivity extends AppCompatActivity implements Listener {
     @Override
     protected void onResume() {
         super.onResume();
-
-        // make the device update its location
-        easyWayLocation.beginUpdates();
-
-
+        easyWayLocation.startLocation();
     }
 
     @Override
     protected void onPause() {
-        // stop location updates (saves battery)
-        easyWayLocation.endUpdates();
-        
-
         super.onPause();
+        easyWayLocation.endUpdates();
+
     }
 }
 
@@ -125,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements Listener {
     }
 
     @Override
-    public void onPositionChanged() {
+    public void  currentLocation(Location location){
        // give lat and long at every interval 
     }
 
@@ -144,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements Listener {
 ````
 Context context = this;
 boolean requireFineGranularity = false;
-new EasyWayLocation(context, requireFineGranularity);
+new EasyWayLocation(this, requireLastLocation = false,listner = this);
 
 or
 
@@ -152,23 +145,8 @@ Context context = this;
 boolean requireFineGranularity = false;
 boolean passiveMode = false;
 long updateIntervalInMilliseconds = 10 * 60 * 1000;
-new EasyWayLocation(context, requireFineGranularity, passiveMode, updateIntervalInMilliseconds);
+new EasyWayLocation(this,locationRequest = request ,  requireLastLocation = false,listner = this);
 
-or
-
-Context context = this;
-boolean requireFineGranularity = false;
-boolean passiveMode = false;
-new EasyWayLocation(context, requireFineGranularity, passiveMode);
-
-or
-
-Context context = this;
-boolean requireFineGranularity = false;
-boolean passiveMode = false;
-long updateIntervalInMilliseconds = 10 * 60 * 1000;
-boolean requireNewLocation = false;
-new EasyWayLocation(context, requireFineGranularity, passiveMode, updateIntervalInMilliseconds, requireNewLocation);
 
 ````
 
