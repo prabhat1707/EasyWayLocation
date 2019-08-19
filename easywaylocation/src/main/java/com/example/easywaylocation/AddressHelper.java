@@ -13,6 +13,7 @@ import java.util.Locale;
  * Created by prabhat on 2/10/18.
  */
 
+@Deprecated
 public class AddressHelper {
     private static final String TAG = AddressHelper.class.getSimpleName();
 
