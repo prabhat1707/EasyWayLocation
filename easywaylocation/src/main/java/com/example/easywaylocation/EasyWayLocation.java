@@ -3,6 +3,7 @@ package com.example.easywaylocation;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,36 +14,36 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Bundle;
+import android.os.Build;
+import android.os.Looper;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
-import android.widget.Toast;
+import android.text.TextUtils;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+
 /**
  * Utility class for easy access to the device location on Android
  */
-public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class EasyWayLocation {
 
 
     /*
@@ -83,6 +84,7 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
      * The factor for conversion from longitude to kilometers at zero degree in latitude
      */
     private static final float LONGITUDE_TO_KILOMETER_AT_ZERO_LATITUDE = 111.320f;
+    private static final int REQUEST_CHECK_SETTINGS = 11;
     /**
      * The PRNG that is used for location blurring
      */
@@ -95,28 +97,32 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
     /**
      * The LocationManager instance used to query the device location
      */
-    private final LocationManager mLocationManager;
+    //private final LocationManager mLocationManager;
     /**
      * Whether a fine location should be required or coarse location can be used
      */
-    private final boolean mRequireFine;
+    //private final boolean mRequireFine;
     /**
      * Whether passive mode shall be used or not
      */
-    private final boolean mPassive;
+    private boolean mPassive;
     /**
      * The internal after which new location updates are requested (in milliseconds) where longer intervals save battery
      */
-    private final long mInterval;
+    private long mInterval;
     /**
      * Whether to require a new location (`true`) or accept old (last known) locations as well (`false`)
      */
-    private final boolean mRequireNewLocation;
+    private boolean mRequireLastLocation;
+    private FusedLocationProviderClient fusedLocationClient;
     boolean gps_enabled = false;
     boolean network_enabled = false;
     GoogleApiClient googleApiClient;
     private Boolean locationReturn = true;
+    private Context activity;
     private Context context;
+    private LocationCallback locationCallback;
+
     /**
      * The blur radius (in meters) that will be used to blur the location for privacy reasons
      */
@@ -130,78 +136,45 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
      */
     private Location mPosition;
     private Listener mListener;
-
-    /**
-     * Constructs a new instance with default granularity, mode and interval
-     *
-     * @param context the Context reference to get the system service from
-     */
-    public EasyWayLocation(final Context context) {
-        this(context, false);
-    }
-
-    /**
-     * Constructs a new instance with default mode and interval
-     *
-     * @param context     the Context reference to get the system service from
-     * @param requireFine whether to require fine location or use coarse location
-     */
-    public EasyWayLocation(final Context context, final boolean requireFine) {
-        this(context, requireFine, false);
-    }
-
-    /**
-     * Constructs a new instance with default interval
-     *
-     * @param context     the Context reference to get the system service from
-     * @param requireFine whether to require fine location or use coarse location
-     * @param passive     whether to use passive mode (to save battery) or active mode
-     */
-    public EasyWayLocation(final Context context, final boolean requireFine, final boolean passive) {
-        this(context, requireFine, passive, INTERVAL_DEFAULT);
-    }
+    private LocationRequest locationRequest;
 
     /**
      * Constructs a new instance
      *
      * @param context     the Context reference to get the system service from
-     * @param requireFine whether to require fine location or use coarse location
-     * @param passive     whether to use passive mode (to save battery) or active mode
-     * @param interval    the interval to request new location updates after (in milliseconds) where longer intervals save battery
      */
-    public EasyWayLocation(final Context context, final boolean requireFine, final boolean passive, final long interval) {
-        this(context, requireFine, passive, interval, false);
+    public EasyWayLocation(final Context context,final boolean requireLastLocation,final Listener listener) {
+        this(context, null, requireLastLocation,listener);
     }
 
     /**
      * Constructs a new instance
-     *
-     * @param context            the Context reference to get the system service from
-     * @param requireFine        whether to require fine location or use coarse location
-     * @param passive            whether to use passive mode (to save battery) or active mode
-     * @param interval           the interval to request new location updates after (in milliseconds) where longer intervals save battery
-     * @param requireNewLocation whether to require a new location (`true`) or accept old (last known) locations as well (`false`)
+     * @param context Context reference to get the system service from
+     * @param locationRequestt
+     * location request
+     * @param requireLastLocation require last location or not
+
      */
-    public EasyWayLocation(final Context context, final boolean requireFine, final boolean passive, final long interval, final boolean requireNewLocation) {
-        mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        mRequireFine = requireFine;
+    public EasyWayLocation(Context context, final LocationRequest locationRequestt, final boolean requireLastLocation,final Listener listener) {
+       // mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
         this.context = context;
-        mPassive = passive;
-        mInterval = interval;
-        mRequireNewLocation = requireNewLocation;
-
-        googleApiClient = new GoogleApiClient.Builder(context)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        googleApiClient.connect();
-
-        if (!mRequireNewLocation) {
-            mPosition = getCachedPosition();
-            cachePosition();
+        this.mListener = listener;
+        if (locationRequest != null){
+            this.locationRequest = locationRequestt;
+        }else {
+            locationRequest = new LocationRequest();
+            locationRequest.setInterval(10000);
+           // locationRequest.setSmallestDisplacement(10F);
+            locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        }
+        this.mRequireLastLocation = requireLastLocation;
+        if (mRequireLastLocation) {
+            getCachedPosition();
+            //cachePosition();
         }
     }
+
 
     /**
      * For any radius `n`, calculate a random offset in the range `[-n, n]`
@@ -341,54 +314,57 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
         mListener = listener;
     }
 
-    public boolean locationEnabled() {
-        try {
-            gps_enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-        }
 
-        try {
-            network_enabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ex) {
-        }
-
-        return !(!gps_enabled && !network_enabled);
-
-
-    }
-
-    /**
-     * Whether the device has location access enabled in the settings
-     *
-     * @return whether location access is enabled or not
-     */
     public boolean hasLocationEnabled() {
-        return hasLocationEnabled(getProviderName());
-    }
-
-    private boolean hasLocationEnabled(final String providerName) {
         try {
-            return mLocationManager.isProviderEnabled(providerName);
-        } catch (Exception e) {
+            int locationMode = 0;
+            String locationProviders;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+                try {
+                    locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+
+                } catch (Settings.SettingNotFoundException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+                return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+            }else{
+                locationProviders = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+                return !TextUtils.isEmpty(locationProviders);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
             return false;
         }
+    }
+
+    public void startLocation(){
+        checkLocationSetting();
     }
 
     /**
      * Starts updating the location and requesting new updates after the defined interval
      */
     @SuppressLint("MissingPermission")
-    public void beginUpdates() {
-        if (mLocationListener != null) {
-            endUpdates();
-        }
+    private void beginUpdates() {
+        locationCallback = new LocationCallback(){
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    mListener.locationCancelled();
+                }else {
+                    for (Location location : locationResult.getLocations()) {
+                        mListener.currentLocation(location);
+                    }
+                }
 
-        if (!mRequireNewLocation) {
-            mPosition = getCachedPosition();
-        }
+            }
+        };
 
-        mLocationListener = createLocationListener();
-        mLocationManager.requestLocationUpdates(getProviderName(), mInterval, 25, mLocationListener);
+        fusedLocationClient.requestLocationUpdates(locationRequest,
+                locationCallback,
+                Looper.getMainLooper());
     }
 
     /**
@@ -396,9 +372,8 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
      */
     @SuppressLint("MissingPermission")
     public void endUpdates() {
-        if (mLocationListener != null) {
-            mLocationManager.removeUpdates(mLocationListener);
-            mLocationListener = null;
+        if (locationCallback != null){
+            fusedLocationClient.removeLocationUpdates(locationCallback);
         }
     }
 
@@ -501,170 +476,128 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
         mBlurRadius = blurRadius;
     }
 
-    /**
-     * Creates a new LocationListener instance used internally to listen for location updates
-     *
-     * @return the new LocationListener instance
-     */
-    private LocationListener createLocationListener() {
-        return new LocationListener() {
 
-            @Override
-            public void onLocationChanged(Location location) {
-                mPosition = location;
-                cachePosition();
 
-                if (mListener != null) {
-                    mListener.onPositionChanged();
-                }
-            }
 
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-            }
-
-        };
-    }
-
-    /**
-     * Returns the name of the location provider that matches the specified settings
-     *
-     * @return the provider's name
-     */
-    private String getProviderName() {
-        return getProviderName(mRequireFine);
-    }
 
     /**
      * Returns the name of the location provider that matches the specified settings and depends on the given granularity
      *
-     * @param requireFine whether to require fine location or use coarse location
      * @return the provider's name
      */
-    private String getProviderName(final boolean requireFine) {
-        // if fine location (GPS) is required
-        if (requireFine) {
-            // we just have to decide between active and passive mode
+//    private String getProviderName(final boolean requireFine) {
+//        // if fine location (GPS) is required
+//        if (requireFine) {
+//            // we just have to decide between active and passive mode
+//
+//            if (mPassive) {
+//                return PROVIDER_FINE_PASSIVE;
+//            } else {
+//                return PROVIDER_FINE;
+//            }
+//        }
+//        // if both fine location (GPS) and coarse location (network) are acceptable
+//        else {
+//            // if we can use coarse location (network)
+//            if (hasLocationEnabled(PROVIDER_COARSE)) {
+//                // if we wanted passive mode
+//                if (mPassive) {
+//                    // throw an exception because this is not possible
+//                    throw new RuntimeException("There is no passive provider for the coarse location");
+//                }
+//                // if we wanted active mode
+//                else {
+//                    // use coarse location (network)
+//                    return PROVIDER_COARSE;
+//                }
+//            }
+//            // if coarse location (network) is not available
+//            else {
+//                // if we can use fine location (GPS)
+//                if (hasLocationEnabled(PROVIDER_FINE) || hasLocationEnabled(PROVIDER_FINE_PASSIVE)) {
+//                    // we have to use fine location (GPS) because coarse location (network) was not available
+//                    return getProviderName(true);
+//                }
+//                // no location is available so return the provider with the minimum permission level
+//                else {
+//                    return PROVIDER_COARSE;
+//                }
+//            }
+//        }
+//    }
 
-            if (mPassive) {
-                return PROVIDER_FINE_PASSIVE;
-            } else {
-                return PROVIDER_FINE;
-            }
-        }
-        // if both fine location (GPS) and coarse location (network) are acceptable
-        else {
-            // if we can use coarse location (network)
-            if (hasLocationEnabled(PROVIDER_COARSE)) {
-                // if we wanted passive mode
-                if (mPassive) {
-                    // throw an exception because this is not possible
-                    throw new RuntimeException("There is no passive provider for the coarse location");
-                }
-                // if we wanted active mode
-                else {
-                    // use coarse location (network)
-                    return PROVIDER_COARSE;
-                }
-            }
-            // if coarse location (network) is not available
-            else {
-                // if we can use fine location (GPS)
-                if (hasLocationEnabled(PROVIDER_FINE) || hasLocationEnabled(PROVIDER_FINE_PASSIVE)) {
-                    // we have to use fine location (GPS) because coarse location (network) was not available
-                    return getProviderName(true);
-                }
-                // no location is available so return the provider with the minimum permission level
-                else {
-                    return PROVIDER_COARSE;
-                }
-            }
-        }
-    }
-
-    /**
-     * Returns the last position from the cache
-     *
-     * @return the cached position
-     */
     @SuppressLint("MissingPermission")
-    private Location getCachedPosition() {
-        if (mCachedPosition != null) {
-            return mCachedPosition;
-        } else {
-            try {
-                return mLocationManager.getLastKnownLocation(getProviderName());
-            } catch (Exception e) {
-                return null;
-            }
-        }
+    private void getCachedPosition() {
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            mListener.currentLocation(location);
+                        }else {
+                            checkLocationSetting();
+                            beginUpdates();
+                            endUpdates();
+                        }
+                    }
+                });
     }
 
     /**
      * Caches the current position
      */
+    @Deprecated
     private void cachePosition() {
         if (mPosition != null) {
             mCachedPosition = mPosition;
         }
     }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(context, "failed", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-
-        LocationRequest mLocationRequest = new LocationRequest();
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
-
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(@NonNull LocationSettingsResult result1) {
-                Status status = result1.getStatus();
-                final LocationSettingsStates states = result1.getLocationSettingsStates();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        mListener.locationOn();
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try {
-
-                            status.startResolutionForResult((Activity) context, LOCATION_SETTING_REQUEST_CODE);
-
-                        } catch (IntentSender.SendIntentException e) {
-
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        locationReturn = false;
-                        break;
-                }
-
-            }
-        });
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-    }
-
-    public Boolean checkLocation() {
-        return locationReturn;
-    }
-
-
+//
+//    @Override
+//    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+//        Toast.makeText(context, "failed", Toast.LENGTH_SHORT).show();
+//    }
+//
+//    @Override
+//    public void onConnected(@Nullable Bundle bundle) {
+//
+//        LocationRequest mLocationRequest = new LocationRequest();
+//        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+//        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+//
+//        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+//            @Override
+//            public void onResult(@NonNull LocationSettingsResult result1) {
+//                Status status = result1.getStatus();
+//                final LocationSettingsStates states = result1.getLocationSettingsStates();
+//                switch (status.getStatusCode()) {
+//                    case LocationSettingsStatusCodes.SUCCESS:
+//                        mListener.locationOn();
+//                        break;
+//                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+//                        try {
+//
+//                            status.startResolutionForResult((Activity) context, LOCATION_SETTING_REQUEST_CODE);
+//
+//                        } catch (IntentSender.SendIntentException e) {
+//
+//                        }
+//                        break;
+//                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+//                        locationReturn = false;
+//                        break;
+//                }
+//
+//            }
+//        });
+//    }
+//
+//    @Override
+//    public void onConnectionSuspended(int i) {
+//    }
+//
+//
 
     /**
      * Wrapper for two coordinates (latitude and longitude)
@@ -728,18 +661,19 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
     }
 
     public void onActivityResult(int result) {
+
         if (result == Activity.RESULT_OK) {
             mListener.locationOn();
+            beginUpdates();
         } else if (result == Activity.RESULT_CANCELED) {
             mListener.locationCancelled();
         }
     }
 
-    public void showAlertDialog(String title, String message, Drawable drawable){
+    public void showAlertDialog(String title, String message, Drawable drawable) {
         AlertDialog alertDialog = new AlertDialog.Builder(context).create();
         alertDialog.setTitle(title);
-        if (drawable != null)
-        {
+        if (drawable != null) {
             alertDialog.setIcon(drawable);
         }
         alertDialog.setMessage(message);
@@ -775,4 +709,37 @@ public class EasyWayLocation implements GoogleApiClient.OnConnectionFailedListen
         return add.replaceAll(",null", "");
     }
 
+    private void checkLocationSetting(){
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.setAlwaysShow(true);
+        builder.addLocationRequest(locationRequest);
+        SettingsClient client = LocationServices.getSettingsClient(context);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(locationSettingsResponse -> {
+            if (mRequireLastLocation){
+                beginUpdates();
+                endUpdates();
+            }else {
+                beginUpdates();
+            }
+
+        });
+
+        task.addOnFailureListener(e -> {
+            if (e instanceof ResolvableApiException) {
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    ResolvableApiException resolvable = (ResolvableApiException) e;
+                    resolvable.startResolutionForResult((Activity)context,
+                            LOCATION_SETTING_REQUEST_CODE);
+                } catch (IntentSender.SendIntentException sendEx) {
+                        sendEx.printStackTrace();
+                }
+            }
+        });
+    }
 }

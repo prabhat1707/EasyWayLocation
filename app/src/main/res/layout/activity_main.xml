@@ -36,6 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:visibility="gone"
         android:autoSizeTextType="uniform"
         android:padding="5dp"
         android:text="Difference between two points in meter"
@@ -44,6 +45,7 @@
 
     <TextView
         android:id="@+id/diff"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
