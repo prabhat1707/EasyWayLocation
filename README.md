@@ -130,9 +130,9 @@ public class MainActivity extends AppCompatActivity implements Listener {
 ````
 # Constructor options
 
-## Decide for the required granularity
-- If you want to get the device's location with fine granularity (between 2m and 100m precision), GPS will be required. This consumes more battery but is most precise.
-- If you want to get the device's location with coarse granularity only (precise to several hundred meters), the location will be retrieved from the network (Wi-Fi and cell towers). This saves battery but is less precise.
+## Points to Remember
+- if you want only last lcation then pass it true and if false then it give you location update as per default location request.
+- if you don't pass then it take default location request or you can pass your's one also(see constructor 2nd).
 
 ````
 Context context = this;
@@ -141,10 +141,10 @@ new EasyWayLocation(this, requireLastLocation = false,listner = this);
 
 or
 
-Context context = this;
-boolean requireFineGranularity = false;
-boolean passiveMode = false;
-long updateIntervalInMilliseconds = 10 * 60 * 1000;
+request = new LocationRequest();
+request.setInterval(10000);
+request.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
 new EasyWayLocation(this,locationRequest = request ,  requireLastLocation = false,listner = this);
 
 
@@ -167,6 +167,19 @@ Point endPoint = new EasyWayLocation.Point(44.84, -0.58);
 location.calculateDistance(startPoint, endPoint);
 
 ````
+
+## Update Get Address Detail's of location.
+- if you want address from current location then you need to pass key and context.
+- why I want key here if android already provide Geocoder because in some cases or in some devices geo coder not work well and                                                          	throws Exception, so in that case i use google geocode api for fetcth address.
+- For this you need to implement Callback ,  LocationData.AddressCallBack
+
+````
+GetLocationDetail getLocationDetail = new GetLocationDetail(callback = this, context = this);
+
+getLocationDetail.getAddress(location.getLatitude(), location.getLongitude(), key = "xyz");
+
+````
+
 #### Bugs, Feature requests
 
 Found a bug? Something that's missing? Feedback is an important part of improving the project, so please
@@ -175,7 +188,7 @@ Found a bug? Something that's missing? Feedback is an important part of improvin
 # License
 
 ````
-Copyright (c) delight.im <prabhatrai@trenzlr.com>
+Copyright (c) delight.im <prabhat.rai1707@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
