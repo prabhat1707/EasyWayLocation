@@ -76,7 +76,7 @@ public class GetLocationDetail {
         tempBuilder.append(longitude);
         DataService dataService = getRetrofitInstance().create(DataService.class);
         Call<String> stringCall = dataService.getData(tempBuilder.toString(), true, key);
-        if (!stringCall.isExecuted()) {
+        if (stringCall.isExecuted()) {
             stringCall.cancel();
         }
         stringCall.enqueue(new Callback<String>() {
