@@ -150,23 +150,23 @@ public class EasyWayLocation {
     /**
      * Constructs a new instance
      * @param context Context reference to get the system service from
-     * @param locationRequestt
+     * @param locationRequest
      * location request
      * @param requireLastLocation require last location or not
 
      */
-    public EasyWayLocation(Context context, final LocationRequest locationRequestt, final boolean requireLastLocation,final Listener listener) {
+    public EasyWayLocation(Context context, final LocationRequest locationRequest, final boolean requireLastLocation,final Listener listener) {
        // mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
         this.context = context;
         this.mListener = listener;
         if (locationRequest != null){
-            this.locationRequest = locationRequestt;
+            this.locationRequest = locationRequest;
         }else {
-            locationRequest = new LocationRequest();
-            locationRequest.setInterval(10000);
+            this.locationRequest = new LocationRequest();
+            this.locationRequest.setInterval(10000);
            // locationRequest.setSmallestDisplacement(10F);
-            locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+            this.locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         }
         this.mRequireLastLocation = requireLastLocation;
         if (mRequireLastLocation) {
