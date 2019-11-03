@@ -31,10 +31,7 @@ public class MainActivity extends AppCompatActivity implements Listener {
         location = findViewById(R.id.location);
         latLong = findViewById(R.id.latlong);
         diff = findViewById(R.id.diff);
-//        DirectionUtil directionUtil = new DirectionUtil.Builder()
-//                .setDirectionKey("AIzaSyDUCCidq_7tBb0s1LRLhhvFyNqd0BeQBuI")
-//
-        // testLocationRequest = new TestLocationRequest(this);
+
         easyWayLocation = new EasyWayLocation(this, false,this);
         if (permissionIsGranted()) {
             doLocationWork();
