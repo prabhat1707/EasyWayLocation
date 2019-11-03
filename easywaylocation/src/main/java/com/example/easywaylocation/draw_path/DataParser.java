@@ -12,6 +12,8 @@ import java.util.List;
 
 public class DataParser {
     /** Receives a JSONObject and returns a list of lists containing latitude and longitude */
+    private PolyLineDataBean polyLineDataBean = new PolyLineDataBean();
+
     public List<List<HashMap<String,String>>> parse(JSONObject jObject){
 
         List<List<HashMap<String, String>>> routes = new ArrayList<>() ;
@@ -26,10 +28,13 @@ public class DataParser {
             /** Traversing all routes */
             for(int i=0;i<jRoutes.length();i++){
                 jLegs = ( (JSONObject)jRoutes.get(i)).getJSONArray("legs");
+               polyLineDataBean.setPlaceSummary(((JSONObject) jRoutes.get(i)).getString("summary"));
                 List<HashMap<String, String>> path = new ArrayList<>();
 
                 /** Traversing all legs */
                 for(int j=0;j<jLegs.length();j++){
+                    polyLineDataBean.setTime(( (JSONObject)jLegs.get(j)).getJSONObject("duration").getString("value"));
+                    polyLineDataBean.setDistance(( (JSONObject)jLegs.get(j)).getJSONObject("distance").getString("value"));
                     jSteps = ( (JSONObject)jLegs.get(j)).getJSONArray("steps");
 
                     /** Traversing all steps */
@@ -59,6 +64,9 @@ public class DataParser {
         return routes;
     }
 
+    public PolyLineDataBean getPolyLineDataBean(){
+        return polyLineDataBean;
+    }
 
     /**
      * Method to decode polyline points

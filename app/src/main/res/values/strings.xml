@@ -2,4 +2,5 @@
     <string name="app_name">Location Sample</string>
     <string name="loc_mess">Please on location of your device. To get your current Address.</string>
     <string name="loc_title">Location Alert</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
