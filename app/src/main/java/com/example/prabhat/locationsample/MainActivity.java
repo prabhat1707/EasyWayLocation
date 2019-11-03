@@ -14,7 +14,6 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.easywaylocation.EasyWayLocation;
 import com.example.easywaylocation.Listener;
-import com.example.easywaylocation.draw_path.DirectionUtil;
 
 import static com.example.easywaylocation.EasyWayLocation.LOCATION_SETTING_REQUEST_CODE;
 
@@ -84,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements Listener {
 
     @Override
     public void currentLocation(Location location) {
-        Log.v("location_test","------------>"+location.getLatitude());
+        Log.v(TAG,"------------>"+location.getLatitude());
     }
 
     @Override
