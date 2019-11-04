@@ -1,6 +1,8 @@
 # Android - EasyWayLocation
 This library contain all utils related to google location. like, getting lat or long, Address and Location Setting dialog, Draw Route etc
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-EasyWayLocation-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/6880)
+
 ## Whats New in Ver 2.0
 
 - Route Draw
