@@ -1,19 +1,19 @@
 # Android - EasyWayLocation
-This library contain all utils related to google location. like, getting lat or long, Address and Location Setting dialog, Draw Route etc
+This library contains all utils related to google location. like, getting lat or long, Address and Location Setting dialog, Draw Route, etc
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-EasyWayLocation-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/6880)
 
-## Whats New in Ver 2.0
+## What's New in Ver 2.0
 
 - Route Draw
-	a. simple.
-	b. animation.
+    a. simple.
+    b. animation.
 
-- Make sure performance is good by using kotlin corotine.
+- Make sure performance is good by using kotlin coroutine.
 
 - Draw route between origin and destination through waypoints.
 
-- Callback of complete route draw with time and distance between waypoints and destimation.
+- The callback of the complete route draws with time and distance between waypoints and destinations.
 
 # Images:
 ![IMages1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F1.png?alt=media&token=0f7b6430-7dac-453e-879f-f0523792fb31)
@@ -26,27 +26,25 @@ This library contain all utils related to google location. like, getting lat or 
 # Installing
 ## Step 1:- Add it in your root build.gradle at the end of repositories:
 ````
-allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
-	}
+all projects {
+        repositories {
+            ...
+            maven { url 'https://jitpack.io' }
+        }
+    }
   
 ````
 ## Step 1:- Add the dependency:
 ````
-
-		dependencies {
-	        implementation 'com.github.prabhat1707:EasyWayLocation:2.0'
-		}
-	
-  
+        dependencies {
+            implementation 'com.github.prabhat1707:EasyWayLocation:2.0'
+        }
+    
 ````
 
 # Usage
 
-###### If the device is running Android 6.0 or higher, and your app's target SDK is 29 or highe then first check permission of location then call it.
+###### If the device is running Android 6.0 or higher, and your app's target SDK is 29 or higher then first check the permission of location then call it.
 
 ## Add the required permissions
 For fine location (GPS location), add the following permission in your AndroidManifest.xml:
@@ -145,8 +143,8 @@ public class MainActivity extends AppCompatActivity implements Listener {
 # Constructor options
 
 ## Points to Remember
-- if you want only last lcation then pass it true and if false then it give you location update as per default location request.
-- if you don't pass then it take default location request or you can pass your's one also(see constructor 2nd).
+- if you want only last location then pass it true and if false then it gives you location update as per default location request.
+- if you don't pass then it takes default location request or you can pass your's one also(see constructor 2nd).
 
 ````
 Context context = this;
@@ -182,10 +180,10 @@ location.calculateDistance(startPoint, endPoint);
 
 ````
 
-## Update Get Address Detail's of location.
-- if you want address from current location then you need to pass key and context.
-- why I want key here if android already provide Geocoder because in some cases or in some devices geo coder not work well and                                                          	throws Exception, so in that case i use google geocode api for fetcth address.
-- For this you need to implement Callback ,  LocationData.AddressCallBack
+## Update Get Address Details of location.
+- if you want an address from the current location then you need to pass key and context.
+- why I want key here if android already provides Geocoder because in some cases or some devices geocoder not work well and throws Exception, so in that case, I use google geocode API for fetch address.
+- For this, you need to implement Callback, LocationData.AddressCallBack
 
 ````
 GetLocationDetail getLocationDetail = new GetLocationDetail(callback = this, context = this);
@@ -196,11 +194,11 @@ getLocationDetail.getAddress(location.getLatitude(), location.getLongitude(), ke
 
 ## Google Map Route
 
-#### If you want to add map route feature in your apps you can use this along with this lib by adding DirectionUtil Class to make you work more easier. This is lib will help you to draw route maps between two point LatLng along its with waypoints.
+#### If you want to add map route feature in your apps you can use this along with this lib by adding DirectionUtil Class to make you work more easier. This is lib will help you to draw route maps between two-point LatLng along it's with waypoints.
 
 ## In Your GoogleMap Ready
 
-#### Make sure you enable google map and google map direction in google developer console.
+#### Make sure you enable google map and google map direction in the google developer console.
 
 ````
 wayPoints.add(LatLng(37.423669, -122.090168))
@@ -221,25 +219,25 @@ wayPoints.add(LatLng(37.423669, -122.090168))
 
 # There are two cases in it:
 
-- With Animaiton like Uber
+- With Animation like Uber
 - without Animation.
 
 1. With Animation
 
-	- setPathAnimation = true
+    - setPathAnimation = true
 
 ![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimation_route.gif?alt=media&token=b46ba82d-956d-4770-822e-bcc5a00b8d3d)
 
 2. Without Animation
 
-	- setPathAnimation = false
-	- change its color by, setPolyLinePrimaryColor() property
-	
+    - setPathAnimation = false
+    - change its color by, setPolyLinePrimaryColor() property
+    
 ![gif2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fnormal_route.gif?alt=media&token=c0fdf82c-a16d-40e1-8f49-c080e4a621e8)
 
 ## Callbacks
 
-#### When route draw path done then it comes in callback 
+#### When route draw path has done then it comes in a callback 
 
 ````
 
@@ -251,13 +249,13 @@ override fun pathFindFinish(polyLineDetails: HashMap<String, PolyLineDataBean>) 
     
 ````
 
-here, polyLineDetails contains each polyline or route detail as time, distance and road summary.
+here, polyLineDetails contain each polyline or route detail as time, distance and road summary.
 
-#### You can also Change the route animation different properties like delay, primary color, secondary color etc , just explore it.
+#### You can also change the route animation different properties like delay, primary color, a secondary color, etc, just explore it.
 
 #### Bugs, Feature requests
 
-Found a bug? Something that's missing? Feedback is an important part of improving the project, so please
+Found a bug? Something that's missing? Feedback is an important part of improving the project, so, please
 <a href="https://github.com/prabhat1707/EasyWayLocation/issues">open an issue</a>
 
 # License
