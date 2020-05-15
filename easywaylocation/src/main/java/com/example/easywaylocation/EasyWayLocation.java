@@ -157,8 +157,8 @@ public class EasyWayLocation {
      */
     public EasyWayLocation(Context context, final LocationRequest locationRequest, final boolean requireLastLocation,final Listener listener) {
        // mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
         this.context = context;
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
         this.mListener = listener;
         if (locationRequest != null){
             this.locationRequest = locationRequest;

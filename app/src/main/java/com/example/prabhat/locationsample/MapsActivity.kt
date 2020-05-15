@@ -1,5 +1,6 @@
 package com.example.prabhat.locationsample
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -33,7 +34,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DirectionUtil.Dire
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(37.423669, -122.090168),14F))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(37.423669, -122.090168),16F))
         wayPoints.add(LatLng(37.423669, -122.090168))
         wayPoints.add(LatLng(37.420930, -122.085362))
                 val directionUtil = DirectionUtil.Builder()
@@ -41,7 +42,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DirectionUtil.Dire
                         .setOrigin(LatLng(37.421481, -122.092156))
                         .setWayPoints(wayPoints)
                         .setGoogleMap(mMap)
-                        .setPathAnimation(true)
+                        .setPathAnimation(false)
+                        .setPolyLinePrimaryColor(Color.WHITE)
                         .setPolyLineWidth(8)
                         .setCallback(this)
                         .setDestination(LatLng(37.421519, -122.086809))
@@ -49,6 +51,4 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DirectionUtil.Dire
 
         directionUtil.drawPath()
     }
-
-
 }

@@ -3,9 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/EasyWayLocation.iml" filepath="$PROJECT_DIR$/EasyWayLocation.iml" />
-      <module fileurl="file://$PROJECT_DIR$/LocationSample.iml" filepath="$PROJECT_DIR$/LocationSample.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/easywaylocation/easywaylocation.iml" filepath="$PROJECT_DIR$/easywaylocation/easywaylocation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/LocationSample.iml" filepath="$PROJECT_DIR$/LocationSample.iml" group="LocationSample" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="LocationSample/app" />
+      <module fileurl="file://$PROJECT_DIR$/easywaylocation/easywaylocation.iml" filepath="$PROJECT_DIR$/easywaylocation/easywaylocation.iml" group="LocationSample/easywaylocation" />
     </modules>
   </component>
 </project>
