@@ -3,7 +3,7 @@ This library contains all utils related to google location. like, getting lat or
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-EasyWayLocation-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/6880)
 
-## What's New in Ver 2.0
+## What's New in Ver 2.2
 
 - Route Draw
     a. simple.
@@ -12,6 +12,8 @@ This library contains all utils related to google location. like, getting lat or
 - Make sure performance is good by using kotlin coroutine.
 
 - Draw route between origin and destination through waypoints.
+
+- Support to android 30.
 
 - The callback of the complete route draws with time and distance between waypoints and destinations.
 
@@ -37,7 +39,7 @@ all projects {
 ## Step 1:- Add the dependency:
 ````
         dependencies {
-            implementation 'com.github.prabhat1707:EasyWayLocation:2.0'
+            implementation 'com.github.prabhat1707:EasyWayLocation:2.2'
         }
     
 ````
@@ -71,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements Listener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //--
-        easyWayLocation = new EasyWayLocation(this, false,this);
+        easyWayLocation = new EasyWayLocation(this, false,false,this);
     }
 
     @Override
@@ -149,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements Listener {
 ````
 Context context = this;
 boolean requireFineGranularity = false;
-new EasyWayLocation(this, requireLastLocation = false,listner = this);
+new EasyWayLocation(this, requireLastLocation = false,isDebuggable = true/false,listner = this);
 
 or
 
@@ -157,7 +159,7 @@ request = new LocationRequest();
 request.setInterval(10000);
 request.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
-new EasyWayLocation(this,locationRequest = request ,  requireLastLocation = false,listner = this);
+new EasyWayLocation(this,locationRequest = request ,  requireLastLocation = false,isDebuggable = true/false,listner = this);
 
 
 ````
