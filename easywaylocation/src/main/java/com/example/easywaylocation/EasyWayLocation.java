@@ -117,7 +117,6 @@ public class EasyWayLocation {
     private FusedLocationProviderClient fusedLocationClient;
     boolean gps_enabled = false;
     boolean network_enabled = false;
-    GoogleApiClient googleApiClient;
     private Boolean locationReturn = true;
     private Context activity;
     private Context context;
@@ -138,13 +137,14 @@ public class EasyWayLocation {
     private Listener mListener;
     private LocationRequest locationRequest;
 
+
     /**
      * Constructs a new instance
      *
      * @param context     the Context reference to get the system service from
      */
-    public EasyWayLocation(final Context context,final boolean requireLastLocation,final Listener listener) {
-        this(context, null, requireLastLocation,listener);
+    public EasyWayLocation(final Context context,final boolean requireLastLocation,Boolean isDebuggable,final Listener listener) {
+        this(context, null, isDebuggable,requireLastLocation,listener);
     }
 
     /**
@@ -155,15 +155,17 @@ public class EasyWayLocation {
      * @param requireLastLocation require last location or not
 
      */
-    public EasyWayLocation(Context context, final LocationRequest locationRequest, final boolean requireLastLocation,final Listener listener) {
+
+    public EasyWayLocation(Context context, final LocationRequest locationRequest, final boolean requireLastLocation,Boolean isDebuggable,final Listener listener) {
        // mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         this.context = context;
         this.mListener = listener;
+        Logger.INSTANCE.setDebuggable(isDebuggable);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
         if (locationRequest != null){
             this.locationRequest = locationRequest;
         }else {
-            this.locationRequest = new LocationRequest();
+            this.locationRequest = LocationRequest.create();
             this.locationRequest.setInterval(10000);
            // locationRequest.setSmallestDisplacement(10F);
             this.locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
@@ -171,7 +173,6 @@ public class EasyWayLocation {
         this.mRequireLastLocation = requireLastLocation;
         if (mRequireLastLocation) {
             getCachedPosition();
-            //cachePosition();
         }
     }
 
@@ -477,55 +478,6 @@ public class EasyWayLocation {
     }
 
 
-
-
-
-    /**
-     * Returns the name of the location provider that matches the specified settings and depends on the given granularity
-     *
-     * @return the provider's name
-     */
-//    private String getProviderName(final boolean requireFine) {
-//        // if fine location (GPS) is required
-//        if (requireFine) {
-//            // we just have to decide between active and passive mode
-//
-//            if (mPassive) {
-//                return PROVIDER_FINE_PASSIVE;
-//            } else {
-//                return PROVIDER_FINE;
-//            }
-//        }
-//        // if both fine location (GPS) and coarse location (network) are acceptable
-//        else {
-//            // if we can use coarse location (network)
-//            if (hasLocationEnabled(PROVIDER_COARSE)) {
-//                // if we wanted passive mode
-//                if (mPassive) {
-//                    // throw an exception because this is not possible
-//                    throw new RuntimeException("There is no passive provider for the coarse location");
-//                }
-//                // if we wanted active mode
-//                else {
-//                    // use coarse location (network)
-//                    return PROVIDER_COARSE;
-//                }
-//            }
-//            // if coarse location (network) is not available
-//            else {
-//                // if we can use fine location (GPS)
-//                if (hasLocationEnabled(PROVIDER_FINE) || hasLocationEnabled(PROVIDER_FINE_PASSIVE)) {
-//                    // we have to use fine location (GPS) because coarse location (network) was not available
-//                    return getProviderName(true);
-//                }
-//                // no location is available so return the provider with the minimum permission level
-//                else {
-//                    return PROVIDER_COARSE;
-//                }
-//            }
-//        }
-//    }
-
     @SuppressLint("MissingPermission")
     private void getCachedPosition() {
         fusedLocationClient.getLastLocation()
@@ -553,51 +505,6 @@ public class EasyWayLocation {
             mCachedPosition = mPosition;
         }
     }
-//
-//    @Override
-//    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-//        Toast.makeText(context, "failed", Toast.LENGTH_SHORT).show();
-//    }
-//
-//    @Override
-//    public void onConnected(@Nullable Bundle bundle) {
-//
-//        LocationRequest mLocationRequest = new LocationRequest();
-//        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
-//        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
-//
-//        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-//            @Override
-//            public void onResult(@NonNull LocationSettingsResult result1) {
-//                Status status = result1.getStatus();
-//                final LocationSettingsStates states = result1.getLocationSettingsStates();
-//                switch (status.getStatusCode()) {
-//                    case LocationSettingsStatusCodes.SUCCESS:
-//                        mListener.locationOn();
-//                        break;
-//                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-//                        try {
-//
-//                            status.startResolutionForResult((Activity) context, LOCATION_SETTING_REQUEST_CODE);
-//
-//                        } catch (IntentSender.SendIntentException e) {
-//
-//                        }
-//                        break;
-//                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-//                        locationReturn = false;
-//                        break;
-//                }
-//
-//            }
-//        });
-//    }
-//
-//    @Override
-//    public void onConnectionSuspended(int i) {
-//    }
-//
-//
 
     /**
      * Wrapper for two coordinates (latitude and longitude)

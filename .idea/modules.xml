@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/EasyWayLocation.iml" filepath="$PROJECT_DIR$/EasyWayLocation.iml" />
-      <module fileurl="file://$PROJECT_DIR$/LocationSample.iml" filepath="$PROJECT_DIR$/LocationSample.iml" group="LocationSample" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="LocationSample/app" />
-      <module fileurl="file://$PROJECT_DIR$/easywaylocation/easywaylocation.iml" filepath="$PROJECT_DIR$/easywaylocation/easywaylocation.iml" group="LocationSample/easywaylocation" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/EasyWayLocation.iml" filepath="$PROJECT_DIR$/.idea/modules/EasyWayLocation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/EasyWayLocation.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/EasyWayLocation.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/easywaylocation/EasyWayLocation.easywaylocation.iml" filepath="$PROJECT_DIR$/.idea/modules/easywaylocation/EasyWayLocation.easywaylocation.iml" />
     </modules>
   </component>
 </project>

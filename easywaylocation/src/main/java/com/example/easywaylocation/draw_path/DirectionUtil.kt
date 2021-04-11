@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.util.Log
 import androidx.annotation.ColorRes
 import androidx.annotation.IntegerRes
+import com.example.easywaylocation.Logger
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.JointType
 import com.google.android.gms.maps.model.LatLng
@@ -21,7 +22,7 @@ class DirectionUtil private constructor(builder: Builder) {
     private val allPathPoints:ArrayList<LatLng> = ArrayList()
     private var mMap: GoogleMap?
     private var directionKey: String?
-    val TAG = "Location_Sample_Logs"
+    val TAG = "Draw path -->"
     private var wayPoints = ArrayList<LatLng>()
     private var origin: LatLng?
     private var destination: LatLng?
@@ -84,9 +85,8 @@ class DirectionUtil private constructor(builder: Builder) {
                             isEnd = true
                         }
                         val url = getUrl(wayPoints[i - 1], wayPoints[i])
-                        Log.d(TAG,url)
                         val data = async(Dispatchers.IO + downloadDataFromUrlException) { downloadUrl(url) }
-                        Log.d(TAG, data.await())
+                        Logger.LogDebug(TAG,data.await())
                         val parseData = async(Dispatchers.IO + parseDataFromUrlException) { doParsingWork(data.await()) }
                         drawData(parseData.await(),i)
                     }
@@ -104,15 +104,21 @@ class DirectionUtil private constructor(builder: Builder) {
     }
 
     val downloadDataFromUrlException = CoroutineExceptionHandler { _, exception ->
-        Log.v(TAG, "${exception}")
+        exception.message?.let {
+            Logger.LogDebug(TAG, "${it}")
+        }
     }
 
     val parseDataFromUrlException = CoroutineExceptionHandler { _, exception ->
-        Log.v(TAG, "${exception}")
+        exception.message?.let {
+            Logger.LogDebug(TAG, "${it}")
+        }
     }
 
     val mainException = CoroutineExceptionHandler { _, exception ->
-        Log.v(TAG, exception.toString().plus(" Please check your internet Connection."))
+        exception.message?.let {
+            Logger.LogDebug(TAG, "${it} Please check your internet Connection.")
+        }
     }
 
     private fun drawData(result: List<List<HashMap<String, String>>>, pathIncrementer: Int) {
@@ -144,8 +150,7 @@ class DirectionUtil private constructor(builder: Builder) {
             lineOptions.jointType(JointType.ROUND)
             lineOptions.width(polyLineWidth.toFloat())
             lineOptions.clickable(true)
-
-            Log.d(TAG, "onPostExecute lineoptions decoded")
+            Logger.LogInfo(TAG,"onPostExecute lineoptions decoded")
 
         }
         // Drawing polyline in the Google Map for the i-th route
@@ -174,15 +179,14 @@ class DirectionUtil private constructor(builder: Builder) {
 
     private fun doParsingWork(jsonData: String): List<List<HashMap<String, String>>> {
         val jObject = JSONObject(jsonData)
-        Log.d(TAG, jsonData)
+        Logger.LogInfo(TAG,jsonData)
         val parser = DataParser()
-        Log.d(TAG, parser.toString())
-
+        Logger.LogInfo(TAG,parser.toString())
         // Starts parsing data
         val routes: List<List<HashMap<String, String>>> = parser.parse(jObject)
         polyLineDataBean = parser.polyLineDataBean
-        Log.d(TAG, "Executing routes")
-        Log.d(TAG, routes.toString())
+        Logger.LogInfo(TAG,"Executing routes--->")
+        Logger.LogDebug(TAG, routes.toString())
         return routes
     }
 
@@ -214,7 +218,6 @@ class DirectionUtil private constructor(builder: Builder) {
             sb.append(i)
         }
         data = sb.toString()
-        Log.d("downloadUrl", data)
         br.close()
         iStream?.close()
         urlConnection.disconnect()

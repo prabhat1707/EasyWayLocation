@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
         latLong = findViewById(R.id.latlong);
         diff = findViewById(R.id.diff);
         getLocationDetail = new GetLocationDetail(this, this);
-        easyWayLocation = new EasyWayLocation(this, false,this);
+        easyWayLocation = new EasyWayLocation(this, false,true,this);
         if (permissionIsGranted()) {
             doLocationWork();
         } else {

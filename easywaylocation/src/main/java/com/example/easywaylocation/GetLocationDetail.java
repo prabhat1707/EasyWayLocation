@@ -27,6 +27,7 @@ public class GetLocationDetail {
     private static Retrofit retrofit;
     private LocationData.AddressCallBack addressCallBack;
     private Context context;
+    private final String TAG = "GetLocationDetailExc-->";
 
     public GetLocationDetail(LocationData.AddressCallBack addressCallBack, Context context) {
         this.addressCallBack = addressCallBack;
@@ -118,13 +119,16 @@ public class GetLocationDetail {
                     }
                     addressCallBack.locationData(locationData);
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Logger.INSTANCE.LogDebug(TAG,"From getAddressFromApi JSONException "+e.getMessage());
+                }
+                catch (NullPointerException e){
+                    Logger.INSTANCE.LogDebug(TAG,"From getAddressFromApi NullPointerException "+e.getMessage());
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Log.v("response", t.toString());
+                Logger.INSTANCE.LogDebug(TAG,"From getAddressFromApi onFailure "+ t.toString());
             }
         });
     }
