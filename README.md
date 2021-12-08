@@ -3,24 +3,26 @@ This library contains all utils related to google location. like, getting lat or
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-EasyWayLocation-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/6880)
 
-## What's New in Ver 2.2
+## What's New in Ver 2.3
 
-- Route Draw
+- Arc Route Draw
+
     a. simple.
+    
     b. animation.
 
-- Make sure performance is good by using kotlin coroutine.
+- Draw Arc route between origin and destination.
 
-- Draw route between origin and destination through waypoints.
+- Clear Polyline by using TAG for both Arc and waypoints polylines.
 
-- Support to android 30.
-
-- The callback of the complete route draws with time and distance between waypoints and destinations.
-
-# Images:
+# Demo Images and Gif:
 ![IMages1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F1.png?alt=media&token=0f7b6430-7dac-453e-879f-f0523792fb31)
 ![alt Setting IMages2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F2.png?alt=media&token=a0aa40d3-2f84-4886-9579-79fdd694290d)
 ![alt Setting IMages3](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F3.png?alt=media&token=412a7e86-0363-4e97-bf01-e130865d015f)
+
+![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimated_route.gif?alt=media&token=24f22537-c5fa-4f7f-9757-1c2174ac87de)
+![gif2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fnormal_routw.gif?alt=media&token=76e35316-2e76-4d4d-9099-98f3f0678b34)
+![gif3](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Farc_animated.gif?alt=media&token=3c28028e-9916-4862-bc95-f32fd36f1d78)
 
 
 # Prerequisites
@@ -36,12 +38,24 @@ all projects {
     }
   
 ````
-## Step 1:- Add the dependency:
+## Step 2:- Add the dependency:
 ````
         dependencies {
-            implementation 'com.github.prabhat1707:EasyWayLocation:2.2'
+            implementation 'com.github.prabhat1707:EasyWayLocation:2.3'
         }
     
+````
+
+### Library uses java 8 bytecode, so dont forget to enable java 8 in your application's build.gradle file.
+
+````
+android {
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+}
+
 ````
 
 # Usage
@@ -198,9 +212,11 @@ getLocationDetail.getAddress(location.getLatitude(), location.getLongitude(), ke
 
 #### If you want to add map route feature in your apps you can use this along with this lib by adding DirectionUtil Class to make you work more easier. This is lib will help you to draw route maps between two-point LatLng along it's with waypoints.
 
-## In Your GoogleMap Ready
+## When Your GoogleMap Ready
 
 #### Make sure you enable google map and google map direction in the google developer console.
+
+#### First Initialize Direction Util
 
 ````
 wayPoints.add(LatLng(37.423669, -122.090168))
@@ -210,14 +226,37 @@ wayPoints.add(LatLng(37.423669, -122.090168))
                         .setOrigin(LatLng(37.421481, -122.092156))
                         .setWayPoints(wayPoints)
                         .setGoogleMap(mMap)
-                        .setPolyLineWidth(8)
+                        .setPolyLinePrimaryColor(R.color.black)
+                        .setPolyLineWidth(5)
+                        .setPathAnimation(true)
                         .setCallback(this)
+                        .setPolylineTag(WAY_POINT_TAG)
                         .setDestination(LatLng(37.421519, -122.086809))
                         .build()
 
-        directionUtil.drawPath()
+````
+
+#### Add below line for route draw
 
 ````
+directionUtil.drawPath()
+
+````
+
+#### Add below line for Arc draw
+
+````
+directionUtil.drawArcDirection(LatLng(37.421481, -122.092156),LatLng(37.421519, -122.086809),0.5,ARC_POINT_TAG)
+
+````
+
+#### Add below line to remove polyline according to corresponding TAG
+
+````
+directionUtil.clearPolyline(WAY_POINT_TAG)
+
+````
+
 
 # There are two cases in it:
 
@@ -228,18 +267,18 @@ wayPoints.add(LatLng(37.423669, -122.090168))
 
     - setPathAnimation = true
 
-![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimation_route.gif?alt=media&token=b46ba82d-956d-4770-822e-bcc5a00b8d3d)
+![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimated_route.gif?alt=media&token=24f22537-c5fa-4f7f-9757-1c2174ac87de)
 
 2. Without Animation
 
     - setPathAnimation = false
     - change its color by, setPolyLinePrimaryColor() property
     
-![gif2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fnormal_route.gif?alt=media&token=c0fdf82c-a16d-40e1-8f49-c080e4a621e8)
+![gif2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fnormal_routw.gif?alt=media&token=76e35316-2e76-4d4d-9099-98f3f0678b34)
 
 ## Callbacks
 
-#### When route draw path has done then it comes in a callback 
+#### When route draw path has done then it below callback is called
 
 ````
 
