@@ -24,10 +24,10 @@
              You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
         <activity
-            android:name=".MapsActivity"
+            android:name=".MainActivity"
             android:label="@string/title_activity_maps"></activity>
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".MapsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -9,9 +9,10 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import java.lang.Exception
 
 
-class MapAnimator {
+internal class MapAnimator {
 
     private var backgroundPolyline: Polyline? = null
 
@@ -83,11 +84,11 @@ class MapAnimator {
         if (backgroundPolyline != null) backgroundPolyline!!.remove()
 
 
-        val optionsBackground = PolylineOptions().add(routes[0]).color(backgroundColor!!).width(8f)
+        val optionsBackground = PolylineOptions().add(routes[0]).color(backgroundColor!!).width(8f)?.geodesic(false)
         backgroundPolyline = googleMap.addPolyline(optionsBackground)
 
 
-        optionsForeground = PolylineOptions().add(routes[0]).color(foregroundColor!!).width(8f)
+        optionsForeground = PolylineOptions().add(routes[0]).color(foregroundColor!!).width(8f)?.geodesic(false)
         foregroundPolyline = googleMap.addPolyline(optionsForeground)
 //        foregroundPolyline?.tag = getTag()
 //        polyLineDetails[foregroundPolyline?.tag as String] = polyLineDataBean
@@ -207,6 +208,22 @@ class MapAnimator {
         val foregroundPoints = foregroundPolyline!!.points
         foregroundPoints.add(endLatLng)
         foregroundPolyline!!.points = foregroundPoints
+    }
+
+    fun getFor():Polyline{
+         foregroundPolyline?.let {
+             return it;
+         }?:run{
+             throw Exception("Please initiate polyline before calling this.")
+         }
+    }
+
+    fun getBck():Polyline{
+        backgroundPolyline?.let {
+            return it;
+        }?:run{
+            throw Exception("Please initiate polyline before calling this.")
+        }
     }
 }
 
