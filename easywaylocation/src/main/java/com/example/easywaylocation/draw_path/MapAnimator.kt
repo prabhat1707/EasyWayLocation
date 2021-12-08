@@ -84,11 +84,11 @@ internal class MapAnimator {
         if (backgroundPolyline != null) backgroundPolyline!!.remove()
 
 
-        val optionsBackground = PolylineOptions().add(routes[0]).color(backgroundColor!!).width(8f)?.geodesic(false)
+        val optionsBackground = PolylineOptions().add(routes[0]).color(backgroundColor!!).width(8f)
         backgroundPolyline = googleMap.addPolyline(optionsBackground)
 
 
-        optionsForeground = PolylineOptions().add(routes[0]).color(foregroundColor!!).width(8f)?.geodesic(false)
+        optionsForeground = PolylineOptions().add(routes[0]).color(foregroundColor!!).width(8f)
         foregroundPolyline = googleMap.addPolyline(optionsForeground)
 //        foregroundPolyline?.tag = getTag()
 //        polyLineDetails[foregroundPolyline?.tag as String] = polyLineDataBean
