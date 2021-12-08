@@ -9,6 +9,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.JointType
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.maps.android.SphericalUtil
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -27,6 +28,7 @@ class DirectionUtil private constructor(builder: Builder) {
     private var origin: LatLng?
     private var destination: LatLng?
     private var polyLineWidth = 10
+    private var mTag:String
     private var pathAnimation:Boolean
     private var polyLinePrimaryColor:Int = 0
     private var polyLineSecondaryColor = 0
@@ -39,9 +41,10 @@ class DirectionUtil private constructor(builder: Builder) {
     private var primaryLineCompletionTime = 2000
 
     private var animationDelay = 200
-
+    private var polylineMap:HashMap<String,MapAnimator> = HashMap()
 
     init {
+        this.mTag = builder.mTag
         this.directionCallBack = builder.directionCallBack
         this.destination = builder.destination
         this.directionKey = builder.key
@@ -172,6 +175,7 @@ class DirectionUtil private constructor(builder: Builder) {
                     mapAnimator.setCompletionTime(pathCompletionTime)
                     mapAnimator.setPrimaryLineCompletion(primaryLineCompletionTime)
                     mapAnimator.animateRoute(it, allPathPoints,polyLineDataBean)
+                    polylineMap.put(mTag,mapAnimator)
                 }
             }
         }
@@ -251,6 +255,57 @@ class DirectionUtil private constructor(builder: Builder) {
         return "https://maps.googleapis.com/maps/api/directions/$output?$parameters"
     }
 
+     fun drawArcDirection(origin: LatLng, destination: LatLng, radius: Double,tag:String) {
+        val allPathPoints:ArrayList<LatLng> = ArrayList()
+        val d: Double = SphericalUtil.computeDistanceBetween(origin, destination)
+        val h: Double = SphericalUtil.computeHeading(origin, destination)
+
+        //Midpoint position
+        val p: LatLng = SphericalUtil.computeOffset(origin, d * 0.5, h)
+
+        val x = (1 - radius * radius) * d * 0.5 / (2 * radius)
+        val r = (1 + radius * radius) * d * 0.5 / (2 * radius)
+        val c: LatLng = SphericalUtil.computeOffset(p, x, h + 90.0)
+
+        //Calculate heading between circle center and two points
+        val h1: Double = SphericalUtil.computeHeading(c, origin)
+        val h2: Double = SphericalUtil.computeHeading(c, destination)
+
+        //Calculate positions of points on circle border and add them to polyline options
+        val numpoints = 100
+        val step = (h2 - h1) / numpoints
+        for (i in 0 until numpoints) {
+            val pi: LatLng = SphericalUtil.computeOffset(c, r, h1 + i * step)
+            allPathPoints.add(pi)
+        }
+
+        mMap?.let {
+            val mapAnimator = MapAnimator()
+            mapAnimator.setColorFillCompletion(pathColorFillAnimationTime)
+            mapAnimator.setDelayTime(animationDelay)
+            mapAnimator.setPrimaryLineColor(polyLinePrimaryColor)
+            mapAnimator.setSecondaryLineColor(polyLineSecondaryColor)
+            mapAnimator.setCompletionTime(pathCompletionTime)
+            mapAnimator.setPrimaryLineCompletion(primaryLineCompletionTime)
+            mapAnimator.animateRoute(it, allPathPoints,polyLineDataBean)
+            polylineMap.put(tag,mapAnimator)
+        }
+
+    }
+
+    fun clearPolyline(mTag: String){
+        if (!polylineMap.containsKey(mTag)){
+            throw java.lang.Exception("No Polyline Tag Found")
+        }
+        polylineMap.get(mTag)?.getBck()?.let {
+            polylineMap.get(mTag)?.getFor()?.remove()
+            it.remove()
+        }?:run{
+            throw java.lang.Exception("Please initiate polyline before calling this.")
+        }
+
+    }
+
 
     interface DirectionCallBack {
         fun pathFindFinish(polyLineDetails: HashMap<String, PolyLineDataBean>)
@@ -260,6 +315,8 @@ class DirectionUtil private constructor(builder: Builder) {
         var directionCallBack: DirectionCallBack? = null
             private set
         var mMap: GoogleMap? = null
+            private set
+        var mTag: String = ""
             private set
         var key: String? = null
             private set
@@ -316,6 +373,11 @@ class DirectionUtil private constructor(builder: Builder) {
             return this
         }
 
+        fun setPolylineTag(mTag: String): Builder {
+            this.mTag = mTag
+            return this
+        }
+
         fun setPolyLineWidth(polyLineWidth: Int): Builder {
             this.polyLineWidth = polyLineWidth
             return this
@@ -345,5 +407,7 @@ class DirectionUtil private constructor(builder: Builder) {
             return DirectionUtil(this)
         }
     }
+
+
 
 }

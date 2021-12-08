@@ -9,9 +9,10 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import java.lang.Exception
 
 
-class MapAnimator {
+internal class MapAnimator {
 
     private var backgroundPolyline: Polyline? = null
 
@@ -207,6 +208,22 @@ class MapAnimator {
         val foregroundPoints = foregroundPolyline!!.points
         foregroundPoints.add(endLatLng)
         foregroundPolyline!!.points = foregroundPoints
+    }
+
+    fun getFor():Polyline{
+         foregroundPolyline?.let {
+             return it;
+         }?:run{
+             throw Exception("Please initiate polyline before calling this.")
+         }
+    }
+
+    fun getBck():Polyline{
+        backgroundPolyline?.let {
+            return it;
+        }?:run{
+            throw Exception("Please initiate polyline before calling this.")
+        }
     }
 }
 
