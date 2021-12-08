@@ -204,13 +204,13 @@ internal class MapAnimator {
     /**
      * This will be invoked by the ObjectAnimator multiple times. Mostly every 16ms.
      */
-    fun setRouteIncreaseForward(endLatLng: LatLng) {
+    private fun setRouteIncreaseForward(endLatLng: LatLng) {
         val foregroundPoints = foregroundPolyline!!.points
         foregroundPoints.add(endLatLng)
         foregroundPolyline!!.points = foregroundPoints
     }
 
-    fun getFor():Polyline{
+    private fun getFor():Polyline{
          foregroundPolyline?.let {
              return it;
          }?:run{
@@ -218,7 +218,7 @@ internal class MapAnimator {
          }
     }
 
-    fun getBck():Polyline{
+    private fun getBck():Polyline{
         backgroundPolyline?.let {
             return it;
         }?:run{
