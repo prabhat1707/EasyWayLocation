@@ -20,7 +20,7 @@ This library contains all utils related to google location. like, getting lat or
 ![alt Setting IMages2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F2.png?alt=media&token=a0aa40d3-2f84-4886-9579-79fdd694290d)
 ![alt Setting IMages3](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F3.png?alt=media&token=412a7e86-0363-4e97-bf01-e130865d015f)
 
-![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimated_route.gif?alt=media&token=24f22537-c5fa-4f7f-9757-1c2174ac87de)
+![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimation_route.gif?alt=media&token=97af3e8c-e302-41af-b93b-e8b85b47d9e7)
 ![gif2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fnormal_routw.gif?alt=media&token=76e35316-2e76-4d4d-9099-98f3f0678b34)
 ![gif3](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Farc_animated.gif?alt=media&token=3c28028e-9916-4862-bc95-f32fd36f1d78)
 
@@ -267,7 +267,7 @@ directionUtil.clearPolyline(WAY_POINT_TAG)
 
     - setPathAnimation = true
 
-![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimated_route.gif?alt=media&token=24f22537-c5fa-4f7f-9757-1c2174ac87de)
+![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimation_route.gif?alt=media&token=97af3e8c-e302-41af-b93b-e8b85b47d9e7)
 
 2. Without Animation
 
