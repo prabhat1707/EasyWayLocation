@@ -1,13 +1,13 @@
 package com.example.easywaylocation.draw_path
 
 import android.graphics.Color
-import android.util.Log
 import androidx.annotation.ColorRes
 import androidx.annotation.IntegerRes
 import com.example.easywaylocation.Logger
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.JointType
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.SphericalUtil
 import kotlinx.coroutines.*
@@ -23,12 +23,11 @@ class DirectionUtil private constructor(builder: Builder) {
     private val allPathPoints:ArrayList<LatLng> = ArrayList()
     private var mMap: GoogleMap?
     private var directionKey: String?
-    val TAG = "Draw path -->"
+    private val TAG = "Draw path -->"
     private var wayPoints = ArrayList<LatLng>()
     private var origin: LatLng?
     private var destination: LatLng?
     private var polyLineWidth = 10
-    private var mTag:String
     private var pathAnimation:Boolean
     private var polyLinePrimaryColor:Int = 0
     private var polyLineSecondaryColor = 0
@@ -36,15 +35,15 @@ class DirectionUtil private constructor(builder: Builder) {
     private var pathCompletionTime = 2500
     private var pathColorFillAnimationTime = 1800
     private var polyLineDetails:HashMap<String,PolyLineDataBean> = HashMap()
+    private var polyLineDetailsArray:ArrayList<PolyLineDataBean> = ArrayList()
     private var polyLineDataBean = PolyLineDataBean()
-
+    private var arrayOfPoints: ArrayList<ArrayList<LatLng>> = ArrayList()
     private var primaryLineCompletionTime = 2000
 
     private var animationDelay = 200
-    private var polylineMap:HashMap<String,MapAnimator> = HashMap()
+    private var polylineMap:HashMap<String,PolylineBean> = HashMap()
 
     init {
-        this.mTag = builder.mTag
         this.directionCallBack = builder.directionCallBack
         this.destination = builder.destination
         this.directionKey = builder.key
@@ -69,15 +68,37 @@ class DirectionUtil private constructor(builder: Builder) {
         this.animationDelay = builder.animationDelay
     }
 
+    fun setPathAnimation(boolean:Boolean) = apply { this.pathAnimation = boolean }
+
+    fun setCompletionTime(@IntegerRes time: Int) = apply { this.pathCompletionTime = time }
+
+    fun setColorFillCompletion(@IntegerRes time: Int) = apply { this.pathColorFillAnimationTime = time }
+
+    fun setPrimaryLineCompletion(@IntegerRes time: Int) = apply { this.primaryLineCompletionTime = time }
+
+    fun setDelayTime(@IntegerRes time: Int) = apply { this.animationDelay = time }
+
+    fun setPolyLineWidth(polyLineWidth: Int) {
+        this.polyLineWidth = polyLineWidth
+    }
+
+    fun setPolyLinePrimaryColor(@ColorRes color: Int) {
+        this.polyLinePrimaryColor = color
+    }
+
+    fun setPolyLineSecondaryColor(@ColorRes color: Int) {
+        this.polyLineSecondaryColor = color
+    }
+
     @Throws(Exception::class)
-    fun drawPath() {
+    fun initPath() {
         if (directionKey.isNullOrBlank()) {
             throw Exception("Direction directionKey is not valid")
         }
         if (allPathPoints.isNotEmpty()){
             allPathPoints.clear()
+            polyLineDetailsArray.clear()
         }
-
         origin?.let { org ->
             destination?.let { des ->
                 wayPoints.add(0, org)
@@ -87,11 +108,9 @@ class DirectionUtil private constructor(builder: Builder) {
                         if (i == wayPoints.size - 1) {
                             isEnd = true
                         }
-                        val url = getUrl(wayPoints[i - 1], wayPoints[i])
-                        val data = async(Dispatchers.IO + downloadDataFromUrlException) { downloadUrl(url) }
+                        val data = downlaodDataFromUrl(wayPoints[i - 1],wayPoints[i],i)
                         Logger.LogDebug(TAG,data.await())
-                        val parseData = async(Dispatchers.IO + parseDataFromUrlException) { doParsingWork(data.await()) }
-                        drawData(parseData.await(),i)
+                        drawData(parseDownloadedData(data.await(),i).await(),i)
                     }
                 }
 
@@ -102,29 +121,57 @@ class DirectionUtil private constructor(builder: Builder) {
         } ?: kotlin.run {
             throw Exception("Make sure Origin not null")
         }
-
-
     }
 
-    val downloadDataFromUrlException = CoroutineExceptionHandler { _, exception ->
+    private fun downlaodDataFromUrl(o:LatLng,d:LatLng,i:Int):Deferred<String> = runBlocking {
+        val url = getUrl(o, d)
+        Logger.LogInfo("$TAG url $i", url)
+        async(Dispatchers.IO + downloadDataFromUrlException) { downloadUrl(url) }
+    }
+
+    private fun parseDownloadedData(data:String,i:Int):Deferred<List<List<HashMap<String, String>>> > = runBlocking {
+        async(Dispatchers.IO + parseDataFromUrlException) { doParsingWork(data,wayPoints[i]) }
+    }
+
+    fun getShortestPathDetails(origin:LatLng, destination: LatLng):PolyLineDataBean = runBlocking{
+        val data = downlaodDataFromUrl(origin,destination,0)
+        val jObject =  JSONObject(data.await())
+        Logger.LogInfo(TAG,jObject.toString())
+        val parser = DataParser()
+        parser.parse(jObject)
+        parser.polyLineDataBean.apply {
+            this.position = destination
+            this.distanceFromPrevPoint = this.distance
+            this.timeFromPrevPoint = this.time
+        }
+    }
+
+    private val downloadDataFromUrlException = CoroutineExceptionHandler { _, exception ->
         exception.message?.let {
             Logger.LogDebug(TAG, "${it}")
         }
     }
 
-    val parseDataFromUrlException = CoroutineExceptionHandler { _, exception ->
+    private val parseDataFromUrlException = CoroutineExceptionHandler { _, exception ->
         exception.message?.let {
             Logger.LogDebug(TAG, "${it}")
         }
     }
 
-    val mainException = CoroutineExceptionHandler { _, exception ->
+    private val mainException = CoroutineExceptionHandler { _, exception ->
         exception.message?.let {
             Logger.LogDebug(TAG, "${it} Please check your internet Connection.")
         }
     }
 
+    fun serOrigin(latLng: LatLng, wayPoint: ArrayList<LatLng>){
+        this.origin = latLng
+        this.wayPoints.clear()
+        this.wayPoints = ArrayList(wayPoint)
+    }
+
     private fun drawData(result: List<List<HashMap<String, String>>>, pathIncrementer: Int) {
+        arrayOfPoints.clear();
         var points: ArrayList<LatLng>
         val lineOptions = PolylineOptions()
 
@@ -146,49 +193,72 @@ class DirectionUtil private constructor(builder: Builder) {
 
                 points.add(position)
                 allPathPoints.add(position)
+                arrayOfPoints.add(allPathPoints)
+
             }
-
-            // Adding all the points in the route to LineOptions
-            lineOptions.addAll(points)
-            lineOptions.jointType(JointType.ROUND)
-            lineOptions.width(polyLineWidth.toFloat())
-            lineOptions.clickable(true)
-            Logger.LogInfo(TAG,"onPostExecute lineoptions decoded")
-
-        }
-        // Drawing polyline in the Google Map for the i-th route
-        if (!pathAnimation){
-            val polyLine = mMap?.addPolyline(lineOptions)
-//            polyLine?.tag = getTag()
         }
         polyLineDetails["path$pathIncrementer"] = polyLineDataBean
+        polyLineDetailsArray.add(polyLineDataBean)
         if (isEnd) {
-            directionCallBack?.pathFindFinish(polyLineDetails)
+            updatePathDetails(polyLineDetails)
+            directionCallBack?.pathFindFinish(polyLineDetails,polyLineDetailsArray)
             isEnd = false
-            if (pathAnimation){
-                mMap?.let {
-                    val mapAnimator = MapAnimator()
-                    mapAnimator.setColorFillCompletion(pathColorFillAnimationTime)
-                    mapAnimator.setDelayTime(animationDelay)
-                    mapAnimator.setPrimaryLineColor(polyLinePrimaryColor)
-                    mapAnimator.setSecondaryLineColor(polyLineSecondaryColor)
-                    mapAnimator.setCompletionTime(pathCompletionTime)
-                    mapAnimator.setPrimaryLineCompletion(primaryLineCompletionTime)
-                    mapAnimator.animateRoute(it, allPathPoints,polyLineDataBean)
-                    polylineMap.put(mTag,mapAnimator)
-                }
-            }
         }
     }
 
-    private fun doParsingWork(jsonData: String): List<List<HashMap<String, String>>> {
+    private fun updatePathDetails(polyLineDetails: java.util.HashMap<String, PolyLineDataBean>) {
+        val size = polyLineDetails.size
+        if (size == 1) return
+        var pathIncrementer = 1;
+        while (pathIncrementer <= size){
+            polyLineDetails["path${pathIncrementer}"]?.timeFromPrevPoint = ((polyLineDetails["path${pathIncrementer-1}"]?.timeFromPrevPoint?.toDouble() ?: 0.0) + (polyLineDetails["path${pathIncrementer}"]?.time?.toDouble()
+                ?: 0.0)).toString()
+            polyLineDetails["path${pathIncrementer}"]?.distanceFromPrevPoint = ((polyLineDetails["path${pathIncrementer-1}"]?.distanceFromPrevPoint?.toDouble() ?: 0.0) + (polyLineDetails["path${pathIncrementer}"]?.distance?.toDouble()
+                ?: 0.0)).toString()
+            pathIncrementer++;
+        }
+    }
+
+    fun drawPath(mTag:String){
+        var polyLine: Polyline? = null
+        if (!pathAnimation){
+            for(array in arrayOfPoints){
+                val lineOptions = PolylineOptions()
+                // Adding all the points in the route to LineOptions
+                lineOptions.addAll(array)
+                lineOptions.jointType(JointType.ROUND)
+                lineOptions.width(polyLineWidth.toFloat())
+                lineOptions.clickable(true)
+                polyLine = mMap?.addPolyline(lineOptions)
+                Logger.LogInfo(TAG,"onPostExecute lineoptions decoded")
+                polylineMap.put(mTag,PolylineBean(polyLine,null))
+            }
+        }else{
+            mMap?.let {
+                val mapAnimator = MapAnimator()
+                mapAnimator.setColorFillCompletion(pathColorFillAnimationTime)
+                mapAnimator.setDelayTime(animationDelay)
+                mapAnimator.setPrimaryLineColor(polyLinePrimaryColor)
+                mapAnimator.setSecondaryLineColor(polyLineSecondaryColor)
+                mapAnimator.setCompletionTime(pathCompletionTime)
+                mapAnimator.setPrimaryLineCompletion(primaryLineCompletionTime)
+                mapAnimator.animateRoute(it, allPathPoints,polyLineDataBean)
+                polylineMap.put(mTag,mapAnimator.getPolyline())
+            }
+        }
+
+    }
+
+    private fun doParsingWork(jsonData: String, latLng: LatLng): List<List<HashMap<String, String>>> {
         val jObject = JSONObject(jsonData)
         Logger.LogInfo(TAG,jsonData)
         val parser = DataParser()
         Logger.LogInfo(TAG,parser.toString())
         // Starts parsing data
         val routes: List<List<HashMap<String, String>>> = parser.parse(jObject)
-        polyLineDataBean = parser.polyLineDataBean
+        polyLineDataBean = parser.polyLineDataBean.apply {
+            this.position = latLng
+        }
         Logger.LogInfo(TAG,"Executing routes--->")
         Logger.LogDebug(TAG, routes.toString())
         return routes
@@ -236,7 +306,6 @@ class DirectionUtil private constructor(builder: Builder) {
         // Destination of route
         val str_dest = "destination=" + dest.latitude + "," + dest.longitude
 
-
         // Sensor enabled
         val sensor = "sensor=false"
 
@@ -255,41 +324,55 @@ class DirectionUtil private constructor(builder: Builder) {
         return "https://maps.googleapis.com/maps/api/directions/$output?$parameters"
     }
 
-     fun drawArcDirection(origin: LatLng, destination: LatLng, radius: Double,tag:String) {
-        val allPathPoints:ArrayList<LatLng> = ArrayList()
-        val d: Double = SphericalUtil.computeDistanceBetween(origin, destination)
-        val h: Double = SphericalUtil.computeHeading(origin, destination)
+    fun drawArcDirection(origin: LatLng, destination: LatLng, radius: Double,tag:String) {
+         GlobalScope.launch(Dispatchers.IO) {
+             val allPathPoints:ArrayList<LatLng> = ArrayList()
+             val d: Double = SphericalUtil.computeDistanceBetween(origin, destination)
+             val h: Double = SphericalUtil.computeHeading(origin, destination)
 
-        //Midpoint position
-        val p: LatLng = SphericalUtil.computeOffset(origin, d * 0.5, h)
+             //Midpoint position
+             val p: LatLng = SphericalUtil.computeOffset(origin, d * 0.5, h)
 
-        val x = (1 - radius * radius) * d * 0.5 / (2 * radius)
-        val r = (1 + radius * radius) * d * 0.5 / (2 * radius)
-        val c: LatLng = SphericalUtil.computeOffset(p, x, h + 90.0)
+             val x = (1 - radius * radius) * d * 0.5 / (2 * radius)
+             val r = (1 + radius * radius) * d * 0.5 / (2 * radius)
+             val c: LatLng = SphericalUtil.computeOffset(p, x, h + 90.0)
 
-        //Calculate heading between circle center and two points
-        val h1: Double = SphericalUtil.computeHeading(c, origin)
-        val h2: Double = SphericalUtil.computeHeading(c, destination)
+             //Calculate heading between circle center and two points
+             val h1: Double = SphericalUtil.computeHeading(c, origin)
+             val h2: Double = SphericalUtil.computeHeading(c, destination)
 
-        //Calculate positions of points on circle border and add them to polyline options
-        val numpoints = 100
-        val step = (h2 - h1) / numpoints
-        for (i in 0 until numpoints) {
-            val pi: LatLng = SphericalUtil.computeOffset(c, r, h1 + i * step)
-            allPathPoints.add(pi)
-        }
-
-        mMap?.let {
-            val mapAnimator = MapAnimator()
-            mapAnimator.setColorFillCompletion(pathColorFillAnimationTime)
-            mapAnimator.setDelayTime(animationDelay)
-            mapAnimator.setPrimaryLineColor(polyLinePrimaryColor)
-            mapAnimator.setSecondaryLineColor(polyLineSecondaryColor)
-            mapAnimator.setCompletionTime(pathCompletionTime)
-            mapAnimator.setPrimaryLineCompletion(primaryLineCompletionTime)
-            mapAnimator.animateRoute(it, allPathPoints,polyLineDataBean)
-            polylineMap.put(tag,mapAnimator)
-        }
+             //Calculate positions of points on circle border and add them to polyline options
+             val numpoints = 100
+             val step = (h2 - h1) / numpoints
+             for (i in 0 until numpoints) {
+                 val pi: LatLng = SphericalUtil.computeOffset(c, r, h1 + i * step)
+                 allPathPoints.add(pi)
+             }
+             withContext(Dispatchers.Main){
+                 if (!pathAnimation){
+                     val lineOptions = PolylineOptions()
+                     lineOptions.addAll(allPathPoints)
+                     lineOptions.jointType(JointType.ROUND)
+                     lineOptions.width(polyLineWidth.toFloat())
+                     lineOptions.clickable(true)
+                     val polyLine = mMap?.addPolyline(lineOptions)
+                     polylineMap.put(tag,PolylineBean(polyLine,null))
+                     this.cancel()
+                     return@withContext
+                 }
+                 mMap?.let {
+                     val mapAnimator = MapAnimator()
+                     mapAnimator.setColorFillCompletion(pathColorFillAnimationTime)
+                     mapAnimator.setDelayTime(animationDelay)
+                     mapAnimator.setPrimaryLineColor(polyLinePrimaryColor)
+                     mapAnimator.setSecondaryLineColor(polyLineSecondaryColor)
+                     mapAnimator.setCompletionTime(pathCompletionTime)
+                     mapAnimator.setPrimaryLineCompletion(primaryLineCompletionTime)
+                     mapAnimator.animateRoute(it, allPathPoints,polyLineDataBean)
+                     polylineMap.put(tag,mapAnimator.getPolyline())
+                 }
+             }
+         }
 
     }
 
@@ -297,26 +380,28 @@ class DirectionUtil private constructor(builder: Builder) {
         if (!polylineMap.containsKey(mTag)){
             throw java.lang.Exception("No Polyline Tag Found")
         }
-        polylineMap.get(mTag)?.getBck()?.let {
-            polylineMap.get(mTag)?.getFor()?.remove()
-            it.remove()
+        polylineMap.get(mTag)?.let {
+            it.foreground?.remove()
+            if (pathAnimation){
+                it.backPolyline?.remove()
+            }
         }?:run{
             throw java.lang.Exception("Please initiate polyline before calling this.")
         }
 
     }
 
-
     interface DirectionCallBack {
-        fun pathFindFinish(polyLineDetails: HashMap<String, PolyLineDataBean>)
+        fun pathFindFinish(
+            polyLineDetails: HashMap<String, PolyLineDataBean>,
+            polyLineDetailsArray: ArrayList<PolyLineDataBean>
+        )
     }
 
     class Builder {
         var directionCallBack: DirectionCallBack? = null
             private set
         var mMap: GoogleMap? = null
-            private set
-        var mTag: String = ""
             private set
         var key: String? = null
             private set
@@ -349,7 +434,7 @@ class DirectionUtil private constructor(builder: Builder) {
         fun setCallback(directionCallBack: DirectionCallBack) = apply { this.directionCallBack = directionCallBack }
 
         fun setWayPoints(wayPoints: ArrayList<LatLng>): Builder {
-            this.wayPoints = wayPoints
+            this.wayPoints = ArrayList(wayPoints)
             return this
         }
 
@@ -363,6 +448,11 @@ class DirectionUtil private constructor(builder: Builder) {
             return this
         }
 
+        fun setDebuggable():Builder{
+            Logger.isDebuggable = true
+            return this
+        }
+
         fun setDirectionKey(key: String): Builder {
             this.key = key
             return this
@@ -370,11 +460,6 @@ class DirectionUtil private constructor(builder: Builder) {
 
         fun setGoogleMap(map: GoogleMap): Builder {
             this.mMap = map
-            return this
-        }
-
-        fun setPolylineTag(mTag: String): Builder {
-            this.mTag = mTag
             return this
         }
 
