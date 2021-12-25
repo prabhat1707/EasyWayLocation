@@ -41,7 +41,7 @@ class DirectionUtil private constructor(builder: Builder) {
     private var primaryLineCompletionTime = 2000
 
     private var animationDelay = 200
-    private var polylineMap:HashMap<String,PolylineBean> = HashMap()
+    private var polylineMap:HashMap<String,ArrayList<PolylineBean>> = HashMap()
 
     init {
         this.directionCallBack = builder.directionCallBack
@@ -84,6 +84,10 @@ class DirectionUtil private constructor(builder: Builder) {
 
     fun setPolyLinePrimaryColor(@ColorRes color: Int) {
         this.polyLinePrimaryColor = color
+    }
+
+    fun getPolylineMap():HashMap<String,ArrayList<PolylineBean>>{
+        return polylineMap
     }
 
     fun setPolyLineSecondaryColor(@ColorRes color: Int) {
@@ -220,7 +224,7 @@ class DirectionUtil private constructor(builder: Builder) {
     }
 
     fun drawPath(mTag:String){
-        var polyLine: Polyline? = null
+        val polylineArray = ArrayList<PolylineBean>()
         if (!pathAnimation){
             for(array in arrayOfPoints){
                 val lineOptions = PolylineOptions()
@@ -229,10 +233,11 @@ class DirectionUtil private constructor(builder: Builder) {
                 lineOptions.jointType(JointType.ROUND)
                 lineOptions.width(polyLineWidth.toFloat())
                 lineOptions.clickable(true)
-                polyLine = mMap?.addPolyline(lineOptions)
+                polylineArray.add(PolylineBean(mMap?.addPolyline(lineOptions),null))
                 Logger.LogInfo(TAG,"onPostExecute lineoptions decoded")
-                polylineMap.put(mTag,PolylineBean(polyLine,null))
             }
+            polylineMap.put(mTag,polylineArray)
+
         }else{
             mMap?.let {
                 val mapAnimator = MapAnimator()
@@ -349,6 +354,7 @@ class DirectionUtil private constructor(builder: Builder) {
                  allPathPoints.add(pi)
              }
              withContext(Dispatchers.Main){
+                 val polylineArray = ArrayList<PolylineBean>()
                  if (!pathAnimation){
                      val lineOptions = PolylineOptions()
                      lineOptions.addAll(allPathPoints)
@@ -356,7 +362,8 @@ class DirectionUtil private constructor(builder: Builder) {
                      lineOptions.width(polyLineWidth.toFloat())
                      lineOptions.clickable(true)
                      val polyLine = mMap?.addPolyline(lineOptions)
-                     polylineMap.put(tag,PolylineBean(polyLine,null))
+                     polylineArray.add(PolylineBean(polyLine,null))
+                     polylineMap.put(tag,polylineArray)
                      this.cancel()
                      return@withContext
                  }
@@ -381,9 +388,11 @@ class DirectionUtil private constructor(builder: Builder) {
             throw java.lang.Exception("No Polyline Tag Found")
         }
         polylineMap.get(mTag)?.let {
-            it.foreground?.remove()
-            if (pathAnimation){
-                it.backPolyline?.remove()
+            for (polyline in it){
+                polyline.foreground?.remove()
+                if (pathAnimation){
+                    polyline.backPolyline?.remove()
+                }
             }
         }?:run{
             throw java.lang.Exception("Please initiate polyline before calling this.")
@@ -393,7 +402,7 @@ class DirectionUtil private constructor(builder: Builder) {
 
     interface DirectionCallBack {
         fun pathFindFinish(
-            polyLineDetails: HashMap<String, PolyLineDataBean>,
+            polyLineDetailsMap: HashMap<String, PolyLineDataBean>,
             polyLineDetailsArray: ArrayList<PolyLineDataBean>
         )
     }

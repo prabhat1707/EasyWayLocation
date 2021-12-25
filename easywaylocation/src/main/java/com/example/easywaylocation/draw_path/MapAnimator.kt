@@ -207,8 +207,10 @@ internal class MapAnimator {
         polylineBean = PolylineBean(foregroundPolyline,backgroundPolyline)
     }
 
-    fun getPolyline():PolylineBean{
-        return polylineBean
+    fun getPolyline():ArrayList<PolylineBean>{
+        val data = ArrayList<PolylineBean>()
+        data.add(polylineBean)
+        return data
     }
 
     /**
