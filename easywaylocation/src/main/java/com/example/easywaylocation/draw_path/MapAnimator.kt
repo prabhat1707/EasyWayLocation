@@ -30,6 +30,7 @@ internal class MapAnimator {
     private var COLOR_FILL_ANIMATION = 1800
     private var FOREGROUND_TIME = 2000
     private var DELAY_TIME = 200
+    private lateinit var polylineBean: PolylineBean
 
 
     private var polyLineDetails: HashMap<String, PolyLineDataBean> = HashMap()
@@ -199,6 +200,17 @@ internal class MapAnimator {
         })
 
         firstRunAnimSet!!.start()
+        addPolyineToBean(foregroundPolyline,backgroundPolyline);
+    }
+
+    private fun addPolyineToBean(foregroundPolyline: Polyline?, backgroundPolyline: Polyline?) {
+        polylineBean = PolylineBean(foregroundPolyline,backgroundPolyline)
+    }
+
+    fun getPolyline():ArrayList<PolylineBean>{
+        val data = ArrayList<PolylineBean>()
+        data.add(polylineBean)
+        return data
     }
 
     /**

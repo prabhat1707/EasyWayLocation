@@ -177,6 +177,8 @@ public class EasyWayLocation {
     }
 
 
+
+
     /**
      * For any radius `n`, calculate a random offset in the range `[-n, n]`
      *
