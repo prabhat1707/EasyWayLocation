@@ -3,7 +3,7 @@ This library contains all utils related to google location. like, getting lat or
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-EasyWayLocation-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/6880)
 
-## What's New in Ver 2.3
+## What's New in Ver 2.4
 
 - Arc Route Draw
 
@@ -13,16 +13,23 @@ This library contains all utils related to google location. like, getting lat or
 
 - Draw Arc route between origin and destination.
 
+- Now , Dev can change parameter dynamically like origin, waypoints, etc
+
+- Get polyline details class in arrayList and HashMap.
+
 - Clear Polyline by using TAG for both Arc and waypoints polylines.
+
+- Fix Major Crash
+
+- Create 1 track demo in example for more usage Help
 
 # Demo Images and Gif:
 ![IMages1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F1.png?alt=media&token=0f7b6430-7dac-453e-879f-f0523792fb31)
 ![alt Setting IMages2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F2.png?alt=media&token=a0aa40d3-2f84-4886-9579-79fdd694290d)
 ![alt Setting IMages3](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F3.png?alt=media&token=412a7e86-0363-4e97-bf01-e130865d015f)
 
-![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fanimation_route.gif?alt=media&token=97af3e8c-e302-41af-b93b-e8b85b47d9e7)
-![gif2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fnormal_routw.gif?alt=media&token=76e35316-2e76-4d4d-9099-98f3f0678b34)
-![gif3](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Farc_animated.gif?alt=media&token=3c28028e-9916-4862-bc95-f32fd36f1d78)
+![gif1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Faniated_forgithub.gif?alt=media&token=d17c187f-8192-4d2f-a44e-26020acfd3eb)
+![gif2](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2Fgif_for_github.gif?alt=media&token=060e72c1-a3fd-4090-8589-7e85ed598b0e)
 
 
 # Prerequisites
@@ -238,8 +245,18 @@ wayPoints.add(LatLng(37.423669, -122.090168))
 
 #### Add below line for route draw
 
+#### First call init and then drawRoute
+
 ````
-directionUtil.drawPath()
+directionUtil.initPath()
+directionUtil.drawPath(WAY_POINT_TAG)
+
+````
+
+#### Now from v2.4 you can change origin, color etc in between path
+
+````
+ directionUtil.serOrigin(LatLng(driverCurrentLocation.latitude,driverCurrentLocation.longitude),wayPoints)
 
 ````
 
@@ -256,7 +273,6 @@ directionUtil.drawArcDirection(LatLng(37.421481, -122.092156),LatLng(37.421519, 
 directionUtil.clearPolyline(WAY_POINT_TAG)
 
 ````
-
 
 # There are two cases in it:
 
