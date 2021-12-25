@@ -48,7 +48,7 @@ all projects {
 ## Step 2:- Add the dependency:
 ````
         dependencies {
-            implementation 'com.github.prabhat1707:EasyWayLocation:2.3'
+            implementation 'com.github.prabhat1707:EasyWayLocation:2.4'
         }
     
 ````
