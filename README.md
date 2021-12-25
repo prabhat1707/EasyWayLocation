@@ -21,7 +21,7 @@ This library contains all utils related to google location. like, getting lat or
 
 - Fix Major Crash
 
-- Create 1 track demo in example for more usage Help
+- Created one track demo in sample folder for more usage Help
 
 # Demo Images and Gif:
 ![IMages1](https://firebasestorage.googleapis.com/v0/b/chatapp-2e1df.appspot.com/o/location%20images%2F1.png?alt=media&token=0f7b6430-7dac-453e-879f-f0523792fb31)
