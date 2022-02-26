@@ -1,3 +1,15 @@
+---
+
+<details><summary><b> See 1 Available Translations 🇨🇳</b></summary>
+<p>
+
+- [🇨🇳 简体中文](./README-zh_CN.md)
+
+</p>
+</details>
+
+---
+
 # Android - EasyWayLocation
 This library contains all utils related to google location. like, getting lat or long, Address and Location Setting dialog, Draw Route, etc
 
